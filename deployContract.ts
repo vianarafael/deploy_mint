@@ -26,10 +26,10 @@ const storageFile = {
   admin: userAddress,
 };
 
-async function deployContract(tezosClient: TezosToolkit, storage: any) {
+async function deployContract(tezosClient: TezosToolkit) {
   const op = await tezosClient.contract.originate({
     code: JSON.parse(fs.readFileSync("./output.json").toString()),
-    storage: storage,
+    storage: storageFile,
   });
   console.log(
     `Waiting for confirmation of origination for ${op.contractAddress}...`
@@ -49,14 +49,14 @@ async function main() {
   const tezosClient = new TezosToolkit(RPC_URL);
 
   const signer = await InMemorySigner.fromSecretKey(userKey);
-  tezosClient.setProvider({ signer: signer });
+  tezosClient.setProvider({ signer });
 
   try {
     exec(
       `ligo compile contract ${contractFile} -e main --michelson-format json >> ./output.json`,
       async () => {
         try {
-          await deployContract(tezosClient, storageFile);
+          await deployContract(tezosClient);
           console.log(`Origination completed.`);
         } catch (error) {
           console.error(error);

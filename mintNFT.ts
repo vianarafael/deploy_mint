@@ -9,7 +9,8 @@ dotenv.config();
 const userAddress = process.env.WALLET_PUBLIC!;
 const private_key = process.env.WALLET_PRIVATE!;
 
-const RPC_URL = "https://ghostnet.tezos.marigold.dev"; // Ghostnet
+const RPC_URL =
+  process.env.RPC_ENDPOINT || "https://ghostnet.tezos.marigold.dev";
 
 const tezosClient = new TezosToolkit(RPC_URL);
 
@@ -25,16 +26,21 @@ export function main(ipfsUrl: string) {
   });
 }
 
-const mint = (signer: any, ipfsUrl: string, contractAddress: string) => {
+const mint = async (signer: any, ipfsUrl: string, contractAddress: string) => {
   tezosClient.setProvider({ signer: signer });
 
-  tezosClient.wallet.at(contractAddress).then((contract) => {
-    contract.methods
+  const contract = await tezosClient.wallet.at(contractAddress);
+  // .then((contract) =>
+  // {
+  try {
+    const op = await contract.methods
       .mint(char2Bytes(ipfsUrl), userAddress)
-      .send()
-      .then((op) => {
-        console.log(op.opHash);
-      })
-      .catch((err) => console.log(err));
-  });
+      .send();
+    // .then((op) => {
+    console.log("Transaction", op.opHash);
+    // })
+  } catch {
+    (err: any) => console.log(err);
+  }
+  // });
 };
