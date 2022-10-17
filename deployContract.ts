@@ -15,7 +15,7 @@ const userAddress = process.env.WALLET_PUBLIC;
 const userKey = process.env.WALLET_PRIVATE!;
 
 const contractFile = process.argv[2];
-//mligo
+
 const storageFile = {
   ledger: new MichelsonMap(),
   operators: new MichelsonMap(),

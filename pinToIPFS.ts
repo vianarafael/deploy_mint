@@ -1,6 +1,7 @@
 import pinataSDK from "@pinata/sdk";
 import * as dotenv from "dotenv";
 import fs from "fs";
+import { main } from "./mintNFT";
 
 dotenv.config();
 
@@ -17,20 +18,7 @@ if (pinata_key && pinata_secret) {
 const readableStreamForFile = fs.createReadStream(process.argv[2]);
 const fileName = process.argv[3];
 
-if (pinata) {
-  pinata
-    .pinFileToIPFS(readableStreamForFile)
-    .then((result: any) => {
-      pinJson(result);
-    })
-    .catch((err: any) => {
-      console.log(err);
-    });
-} else {
-  console.log("File not Found");
-}
-
-const pinJson = (pinnedFile: any) => {
+const pinJson = async (pinnedFile: any) => {
   if (pinnedFile.IpfsHash && pinnedFile.PinSize > 0) {
     fs.unlinkSync(`./${process.argv[2]}`);
 
@@ -40,22 +28,29 @@ const pinJson = (pinnedFile: any) => {
       symbol: "TUT",
       artifactUri: `ipfs://${pinnedFile.IpfsHash}`,
       displayUri: `ipfs://${pinnedFile.IpfsHash}`,
-      creators: "huge",
+      creators: "da creator",
       decimals: 0,
       thumbnailUri: "https://tezostaquito.io/img/favicon.png",
       is_transferable: true,
       shouldPreferSymbol: false,
     };
 
-    pinata
-      .pinJSONToIPFS(metadata, {
-        pinataMetadata: {
-          name: "TUT-metadata",
-        },
-      })
-      .then((res: any) => {
-        console.log(res);
-      });
-    console.log(metadata);
+    const res = await pinata.pinJSONToIPFS(metadata, {
+      pinataMetadata: {
+        name: "TUT-metadata",
+      },
+    });
+    main(res.IpfsHash);
   }
 };
+
+const start = async () => {
+  if (pinata) {
+    const result = await pinata.pinFileToIPFS(readableStreamForFile)!;
+    pinJson(result);
+  } else {
+    console.log("File not Found");
+  }
+};
+
+start();
